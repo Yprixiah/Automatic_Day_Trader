@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 import robin_stocks as r
+import robinhood as rh
 
 EP = 100
 CP = EP
@@ -32,6 +33,8 @@ data.append({'CP': CP,
 r_buffer = [CP/EP]
 CP_buffer = [CP]
 buff_size = 12
+
+trading_type = 'fs'
 
 def buffer_adjust (r, CP):
     global r_buffer, CP_buffer
@@ -127,18 +130,21 @@ def set_parameters (parameters):
 
 def set_real_CP (stock):
     global CP
-    CP = round(float(r.stocks.get_latest_price(stock)[0]), 3)
+    CP = round(float(rh.get_latest_stock_price(stock)[0]), 3)
+    return CP
 
 def set_sim_CP():
     global CP
     CP = round(CP + random.uniform(CP * low_var, CP * up_var), 3)
+    return CP
 
 def live_simulate(t, stock):
     global EP, CP, low_var, up_var, a, c_start, c_finish, t_max, data, a
 
-    if stock == 'SIM':
-        set_sim_CP()
-    else: set_real_CP(stock)
+    if trading_type == 'rs' or trading_type == 'rh':
+        CP = set_real_CP(stock)
+    elif trading_type == 'fs':
+        CP = set_sim_CP()
 
     r = CP / EP
     buffer_adjust(r, CP)
@@ -158,3 +164,7 @@ def get_a():
 def determine_i_S (h, T):
     i_S = h + T
     return i_S
+
+def set_trading_type(type):
+    global trading_type
+    trading_type = type

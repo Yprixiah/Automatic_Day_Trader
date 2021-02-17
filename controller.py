@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import *
 import model as m
 import time
 import view as v
+import robinhood as rh
 
 App = QApplication(sys.argv)
 
@@ -11,7 +12,7 @@ def run(self):
     global App
     b = 0
     SP = 0
-    stock = 'SIM'
+    stock = 'TSLA'
     v.Window.log(self, str(dt.datetime.now().hour) + ":" + \
                     str(dt.datetime.now().minute) + ":" + \
                     str(dt.datetime.now().second) + \
@@ -46,7 +47,20 @@ def run(self):
 def stop(self):
     sys.exit()
 
+def prompt_login(self):
+    self.login_window = v.login_window()
+
+def rh_login (self):
+    rh.set_credentials(v.Window.get_credentials(self))
+    rh.login(self)
+    # v.Window.log(str(dt.datetime.now().hour) + ":" + \
+    #                   str(dt.datetime.now().minute) + ":" + \
+    #                   str(dt.datetime.now().second) + \
+    #                   ": Logged into Robinhood!")
+    m.set_trading_type(v.Window.get_trading_type(self))
+
+
 if __name__ == '__main__':
-    # App = QApplication(sys.argv)
     window = v.Window()
     sys.exit(App.exec())
+

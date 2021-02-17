@@ -15,6 +15,8 @@ parameters = {"Stock to trade": 1,
               "Model (1 for lin, 2 for quad)": 2,
               "Refresh rate (s)" : 1}
 parameters_lines = {}
+trading_type = 'fs'
+credentials = []
 
 class Window(QDialog):
     global parameters, parameters_lines
@@ -22,14 +24,11 @@ class Window(QDialog):
     def __init__(self):
         super().__init__()
 
-        self.title = "Automatic Day Trader"
-        self.left = 0
-        self.top = 0
         self.width = 1440
         self.height = 810
 
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowTitle("Automatic Day Trader")
+        self.setGeometry(0, 0, self.width, self.height)
 
         self.InitUI()
         self.showMaximized()
@@ -71,8 +70,11 @@ class Window(QDialog):
         radioButtonHBox = QHBoxLayout()
         self.simRadioButton = QRadioButton('Full Simulation')
         self.simRadioButton.setChecked(True)
+        self.simRadioButton.clicked.connect(self.set_credentials)
         self.realRadioButton = QRadioButton('Real Price Simulation')
+        self.realRadioButton.clicked.connect(self.set_credentials)
         self.rhRadioButton = QRadioButton('Robinhood')
+        self.rhRadioButton.clicked.connect(self.set_credentials)
         radioButtonHBox.addWidget(self.simRadioButton)
         radioButtonHBox.addWidget(self.realRadioButton)
         radioButtonHBox.addWidget(self.rhRadioButton)
@@ -108,7 +110,7 @@ class Window(QDialog):
             self.line.setText(str(parameters[key]))
             parameters_lines[key] = self.line
             label = QLabel()
-            label.setText(key + ":")
+            label.setText(key + ": ")
             hBox.addWidget(label)
             hBox.addWidget(self.line)
             self.pVBox.addLayout(hBox)
@@ -150,6 +152,24 @@ class Window(QDialog):
             parameters[key] = float(parameters_lines.get(key).text())
         return parameters
 
+    def set_credentials(self):
+        global credentials, trading_type
+        if self.simRadioButton.isChecked() == True:
+            credentials = []
+            trading_type = 'fs'
+        elif self.realRadioButton.isChecked() == True:
+            c.prompt_login(self)
+            trading_type = 'rs'
+        elif self.rhRadioButton.isChecked() == True:
+            c.prompt_login(self)
+            trading_type = 'rh'
+
+    def get_credentials(self):
+        return credentials
+
+    def get_trading_type(self):
+        return trading_type
+
 
 class MplWidget(PyQt5.QtWidgets.QWidget):
 
@@ -164,3 +184,47 @@ class MplWidget(PyQt5.QtWidgets.QWidget):
         self.canvas.axes = self.canvas.figure.add_subplot(111)
         self.setLayout(vertical_layout)
 
+
+class login_window(QDialog):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle('Robinhood Login')
+        self.setGeometry(400, 400, 400, 200)
+
+        self.InitUI()
+        self.show()
+
+    def InitUI(self):
+        mainVBox = QVBoxLayout()
+        self.setLayout(mainVBox)
+
+        topHBox = QHBoxLayout()
+        lowHBox = QHBoxLayout()
+
+        loginLabel = QLabel()
+        loginLabel.setText('Login: ')
+        self.loginLine = QLineEdit()
+        topHBox.addWidget(loginLabel)
+        topHBox.addWidget(self.loginLine)
+
+        passLabel = QLabel()
+        passLabel.setText('Password: ')
+        self.passLine = QLineEdit()
+        lowHBox.addWidget(passLabel)
+        lowHBox.addWidget(self.passLine)
+
+        self.okButton = QPushButton('OK')
+        self.okButton.clicked.connect(self.validate)
+
+        mainVBox.addLayout(topHBox)
+        mainVBox.addLayout(lowHBox)
+        mainVBox.addWidget(self.okButton)
+
+    def validate(self):
+        global credentials
+        credentials = [self.loginLine.text(), self.passLine.text()]
+        c.rh_login(self)
+        self.close()
+        return credentials
