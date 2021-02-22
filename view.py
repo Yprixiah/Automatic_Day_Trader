@@ -43,11 +43,11 @@ class Window(QDialog):
 
         paraVBox = self.set_parameters_vbox()
 
-        self.marketGraph = MplWidget()
-        self.marketGraphTB = NavigationToolbar(self.marketGraph.canvas, self)
-        market_graph_vBox = QVBoxLayout()
-        market_graph_vBox.addWidget(self.marketGraph)
-        market_graph_vBox.addWidget(self.marketGraphTB)
+        self.valueGraph = MplWidget()
+        self.valueGraphTB = NavigationToolbar(self.valueGraph.canvas, self)
+        value_graph_vBox = QVBoxLayout()
+        value_graph_vBox.addWidget(self.valueGraph)
+        value_graph_vBox.addWidget(self.valueGraphTB)
         self.strategyGraph = MplWidget()
         self.strategyGraphTB = NavigationToolbar(self.strategyGraph.canvas, self)
         strategy_graph_vBox = QVBoxLayout()
@@ -58,11 +58,11 @@ class Window(QDialog):
         rates_graph_vBox = QVBoxLayout()
         rates_graph_vBox.addWidget(self.ratesGraph)
         rates_graph_vBox.addWidget(self.ratesGraphTB)
-        self.buyPowerGraph = MplWidget()
-        self.buyPowerGraphTB = NavigationToolbar(self.buyPowerGraph.canvas, self)
-        buyPower_graph_vBox = QVBoxLayout()
-        buyPower_graph_vBox.addWidget(self.buyPowerGraph)
-        buyPower_graph_vBox.addWidget(self.buyPowerGraphTB)
+        self.marketGraph = MplWidget()
+        self.marketGraphTB = NavigationToolbar(self.marketGraph.canvas, self)
+        market_graph_vBox = QVBoxLayout()
+        market_graph_vBox.addWidget(self.marketGraph)
+        market_graph_vBox.addWidget(self.marketGraphTB)
 
         self.log = QTextEdit()
         self.log.setReadOnly(True)
@@ -95,8 +95,8 @@ class Window(QDialog):
 
         botHBox = QHBoxLayout()
         botHBox.addWidget(self.log)
+        botHBox.addLayout(value_graph_vBox)
         botHBox.addLayout(market_graph_vBox)
-        botHBox.addLayout(buyPower_graph_vBox)
 
         mainBox.addLayout(topHBox)
         mainBox.addLayout(botHBox)
@@ -123,7 +123,7 @@ class Window(QDialog):
         c.stop(self)
 
     def clear_graphs(self):
-        graphs = [self.marketGraph, self.ratesGraph, self.strategyGraph, self.buyPowerGraph]
+        graphs = [self.valueGraph, self.ratesGraph, self.strategyGraph, self.marketGraph]
         for graph in graphs:
             graph.canvas.axes.clear()
             graph.canvas.draw()
@@ -137,14 +137,13 @@ class Window(QDialog):
         graph.canvas.axes.set_xlabel(x_label)
         graph.canvas.axes.set_ylabel(y_label)
         if graph_type == 1:
-            for key in data:
-                graph.canvas.axes.data(*zip(*sorted(data[key].items())), label=key)
+            data.plot(y=['MP'], ax=graph.canvas.axes)
         elif graph_type == 2:
             data.plot(y=['r', 'r_a', 'r_u', 'r_l'], ax=graph.canvas.axes)
         elif graph_type == 3:
             data.plot(y=['h', 'T', 'i_s'], ax=graph.canvas.axes)
         elif graph_type == 4:
-            data.plot(y=['CP', 'CP_avg'], ax=graph.canvas.axes)
+            data.plot(y=['VP', 'VP_avg'], ax=graph.canvas.axes)
         graph.canvas.draw()
 
     def get_parameters(self):
